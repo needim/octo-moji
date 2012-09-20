@@ -1,0 +1,27 @@
+{
+  "name": "octo-complete",
+  "version": "0.0.1",
+  "description": "chrome extension and proxy server for github emoji auto-complete",
+  "main": "server/app.js",
+  "dependencies": {
+    "request": "~2.11.4"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/sym3tri/octo-complete.git"
+  },
+  "keywords": [
+    "emoji",
+    "github",
+    "proxy",
+    "extension",
+    "chrome",
+    "autocomplete"
+  ],
+  "author": "Ed Rooth",
+  "license": "BSD"
+}
