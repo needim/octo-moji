@@ -1,0 +1,13 @@
+{
+  "manifest_version": 2,
+  "name": "Octo-Complete",
+  "version": "1.0",
+  "description": "Github emoji auto-complete",
+  "homepage_url": "https://github.com/sym3tri/octo-complete",
+
+  "content_scripts": [{
+    "matches": ["https://github.com/*"],
+    "css": ["style.css"],
+    "js": ["octocomplete.js"]
+  }]
+}
