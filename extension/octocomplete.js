@@ -5,6 +5,9 @@
   doc = root.document,
   store = root.localStorage,
   CACHE_LIMIT_MS = 604800000, // 1 week
+  KEYCODE_COLON = 186,
+  KEYCODE_SPACE = 32,
+  KEYCODE_ESCAPE = 27,
   DATA_ENDPOINT = 'http://localhost:3000/?q=http://www.emoji-cheat-sheet.com',
   // TODO: determine this base url on init
   IMG_PATH = 'https://a248.e.akamai.net/assets.github.com/images/icons/emoji/',
@@ -14,6 +17,7 @@
     this.menuEl = null;
     this.isVisible = false;
     this.emojiList = null;
+    this.filteredEmojiList = null;
     this.activeInput = null;
   };
 
@@ -26,7 +30,7 @@
 
     // TODO: hide menu on any type of click or textarea blur
     attachListeners: function () {
-      doc.addEventListener('keypress', this.onKeypress.bind(this), false);
+      doc.addEventListener('keyup', this.onKeyup.bind(this), false);
       doc.addEventListener('click', this.onClick.bind(this), false);
     },
 
@@ -92,15 +96,52 @@
       return emojiNames.sort();
     },
 
-    // TODO: if not visible, scroll into view.
-    // TODO: populate menu with matching names
-    show: function (targetEl) {
-      var cursorPosition = targetEl.selectionStart,
-          fontSize = parseInt(root.getComputedStyle(targetEl)['font-size'], 10),
-          topPos = this.calcOffsetTop(targetEl) + targetEl.offsetHeight,
-          leftPos = this.calcOffsetLeft(targetEl);
+    render: function (targetEl) {
+      var value = targetEl.value;
+      this.activeInput = targetEl;
+      this.filteredEmojiList = this.filter(value);
+      this.renderList();
+      if (!this.menuVisible) {
+        this.show(targetEl);
+      }
+    },
 
-      this.populateMenu();
+    renderList: function () {
+      var listHtml = '<ul>';
+      this.filteredEmojiList.forEach(function (e) {
+        listHtml += '<li>' + this.buildImgTag(e) + ':' + e + ':</li>';
+      }, this);
+      if (!this.filteredEmojiList.length) {
+        listHtml += '<li>no results</li>';
+      }
+      listHtml += '</ul>';
+      this.menuEl.innerHTML = listHtml;
+    },
+
+    filter: function (allText) {
+      var query = this.parseQuery(allText);
+
+      return this.emojiList.filter(function (item) {
+        if (item.indexOf(query) === 0) {
+          return item;
+        }
+      });
+    },
+
+    parseQuery: function (allText) {
+      var startIndex = allText.lastIndexOf(':') + 1,
+          query;
+
+      query = allText.substring(startIndex);
+      return query;
+    },
+
+    // TODO: if not visible, scroll into view.
+    show: function (targetEl) {
+      var topPos, leftPos;
+
+      topPos = this.calcOffsetTop(targetEl) + targetEl.offsetHeight;
+      leftPos = this.calcOffsetLeft(targetEl);
       this.menuEl.style.top = topPos + 'px';
       this.menuEl.style.left = leftPos + 'px';
       this.menuEl.style.display = 'block';
@@ -111,6 +152,7 @@
       this.menuEl.style.display = 'none';
       this.isVisible = false;
       this.activeInput = null;
+      this.query = '';
     },
 
     select: function (content) {
@@ -122,7 +164,6 @@
       this.dispatchChangeEvent(input);
       input.focus();
       this.moveCursorToEnd(input);
-      console.log('selected: ' + content);
     },
 
     // Need this for github preview to work
@@ -161,28 +202,12 @@
       return offset;
     },
 
-    // TODO: make this work
-    filter: function (search) {
-      return this.emojiList;
-    },
-
     buildImgUrl: function (emojiName) {
       return IMG_PATH + emojiName + '.png';
     },
 
     buildImgTag: function (emojiName) {
       return '<img src="' + this.buildImgUrl(emojiName) + '"/>';
-    },
-
-    populateMenu: function () {
-      var ul = doc.createElement('ul'),
-          listItemHtml = '';
-      this.menuEl.innerHTML = '';
-      this.emojiList.forEach(function (e) {
-        listItemHtml += '<li>' + this.buildImgTag(e) + ':' + e + ':</li>';
-      }, this);
-      ul.innerHTML = listItemHtml;
-      this.menuEl.appendChild(ul);
     },
 
     // TODO: strip out script tags, images, css, etc.
@@ -197,16 +222,23 @@
       // TODO: show message 'fetch complete'
     },
 
-    onKeypress: function (e) {
-      var target = e.target;
+    onKeyup: function (e) {
+      var target = e.target,
+          code = e.keyCode;
+
+      if (this.isVisible && code === KEYCODE_ESCAPE) {
+        this.hide();
+        return;
+      }
       if (target.nodeName !== 'TEXTAREA') {
         return;
       }
-      if (e.keyCode === 58) {
-        if (!this.menuVisible) {
-          this.activeInput = doc.activeElement;
-          this.show(target);
-        }
+      if (this.isVisible && code === KEYCODE_SPACE) {
+        this.hide();
+        return;
+      }
+      if (this.isVisible || (code === KEYCODE_COLON && e.shiftKey)) {
+        this.render(target);
       }
     },
 
