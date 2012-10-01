@@ -6,6 +6,7 @@
   store = root.localStorage,
   CACHE_LIMIT_MS = 604800000, // 1 week
   DATA_ENDPOINT = 'http://localhost:3000/?q=http://www.emoji-cheat-sheet.com',
+  // TODO: determine this base url on init
   IMG_PATH = 'https://a248.e.akamai.net/assets.github.com/images/icons/emoji/',
   instance,
   OctoComplete = function () {
@@ -31,7 +32,6 @@
     injectMenu: function () {
       var menuEl = this.menuEl = doc.createElement('div');
       menuEl.setAttribute('class', 'octo-complete-menu');
-      menuEl.innerText = 'thisis a menu';
       doc.body.appendChild(menuEl);
     },
 
@@ -62,7 +62,6 @@
         callback(this.getFromCache());
         return;
       }
-
       xhr = new root.XMLHttpRequest();
       xhr.open('GET', DATA_ENDPOINT, true);
       xhr.onreadystatechange = function() {
@@ -81,6 +80,7 @@
       var tmpEl = doc.createElement('div'),
           emojiNodes,
           emojiNames;
+
       tmpEl.innerHTML = this.scrubHtmlString(htmlString);
       emojiNodes = tmpEl.querySelectorAll('.emoji');
       emojiNames = Array.prototype.map.call(emojiNodes, function (emojiNode) {
@@ -92,7 +92,7 @@
     },
 
     // TODO: if not visible, scroll into view.
-    // TOTO: populate menu with matching names
+    // TODO: populate menu with matching names
     show: function (targetEl) {
       var cursorPosition = targetEl.selectionStart,
           fontSize = parseInt(root.getComputedStyle(targetEl)['font-size'], 10),
