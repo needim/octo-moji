@@ -14,6 +14,7 @@
     this.menuEl = null;
     this.isVisible = false;
     this.emojiList = null;
+    this.activeInput = null;
   };
 
   OctoComplete.prototype = {
@@ -109,10 +110,30 @@
     hide: function() {
       this.menuEl.style.display = 'none';
       this.isVisible = false;
+      this.activeInput = null;
     },
 
     select: function (content) {
+      var input = this.activeInput,
+          value = input.value,
+          colonIndex = value.lastIndexOf(':');
+
+      input.value = value.substring(0, colonIndex) + content;
+      this.dispatchChangeEvent(input);
+      input.focus();
+      this.moveCursorToEnd(input);
       console.log('selected: ' + content);
+    },
+
+    // Need this for github preview to work
+    dispatchChangeEvent: function (el) {
+      var evt = doc.createEvent('HTMLEvents');
+      evt.initEvent('change', true, false);
+      el.dispatchEvent(evt);
+    },
+
+    moveCursorToEnd: function (el) {
+      el.selectionStart = el.selectionEnd = el.value.length;
     },
 
     // walk up the tree applying func to each el.prop
@@ -183,7 +204,7 @@
       }
       if (e.keyCode === 58) {
         if (!this.menuVisible) {
-          //menuVisible = 'show-menu';
+          this.activeInput = doc.activeElement;
           this.show(target);
         }
       }
