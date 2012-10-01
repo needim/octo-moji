@@ -4,6 +4,7 @@
   var root = this,
   doc = root.document,
   store = root.localStorage,
+  CACHE_LIMIT_MS = 604800000, // 1 week
   DATA_ENDPOINT = 'http://localhost:3000/?q=http://www.emoji-cheat-sheet.com',
   IMG_PATH = 'https://a248.e.akamai.net/assets.github.com/images/icons/emoji/',
   instance,
@@ -11,7 +12,7 @@
     this.menuVisible = false;
     this.menuEl = null;
     this.isVisible = false;
-    this.emojiList = store.emojiList || null;
+    this.emojiList = null;
   };
 
   OctoComplete.prototype = {
@@ -34,20 +35,45 @@
       doc.body.appendChild(menuEl);
     },
 
-    // TODO: use github's CDN images?
-    // TODO: cache these
+    isStale: function () {
+      var cachedList = store.emojiList,
+          now = (new Date()).getTime(),
+          updateDate = parseInt(store.updateDate, 10);
+
+      if (!cachedList || !updateDate || (now - updateDate) > CACHE_LIMIT_MS) {
+        return true;
+      }
+      return false;
+    },
+
+    getFromCache: function () {
+      return store.emojiList ? store.emojiList.split(',') : null;
+    },
+
+    saveToCache: function (data) {
+      store.emojiList = data;
+      store.updateDate = (new Date()).getTime();
+    },
+
     fetch: function (callback, errback) {
-      // if exists in local storage
-      // ...
-      // else
-      var xhr = new root.XMLHttpRequest();
+      var xhr;
+
+      if (!this.isStale()) {
+        callback(this.getFromCache());
+        return;
+      }
+
+      xhr = new root.XMLHttpRequest();
       xhr.open('GET', DATA_ENDPOINT, true);
       xhr.onreadystatechange = function() {
+        var results;
         // TODO: call errback() if error
         if (xhr.readyState === 4) {
-          callback(xhr.response);
+          results = this.scrape(xhr.response);
+          this.saveToCache(results);
+          callback(results);
         }
-      };
+      }.bind(this);
       xhr.send();
     },
 
@@ -145,8 +171,8 @@
       return newString;
     },
 
-    onFetch: function (response) {
-      this.emojiList = this.scrape(response);
+    onFetch: function (results) {
+      this.emojiList = results;
       // TODO: show message 'fetch complete'
     },
 
