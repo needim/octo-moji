@@ -1,15 +1,13 @@
 {
   "name": "octo-complete",
   "version": "0.0.1",
-  "description": "chrome extension and proxy server for github emoji auto-complete",
-  "main": "server/app.js",
+  "description": "chrome extension and emoji fetcher for github emoji auto-complete",
+  "main": "fetch.js",
   "dependencies": {
-    "request": "~2.11.4"
+    "request": "~2.11.4",
+    "jsdom": "~0.2.15"
   },
   "devDependencies": {},
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "repository": {
     "type": "git",
     "url": "git://github.com/sym3tri/octo-complete.git"
