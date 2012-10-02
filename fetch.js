@@ -9,7 +9,7 @@
 
   function writeFile(jsonData) {
     var dataString = JSON.stringify(jsonData, null, ' ');
-    fs.writeFile('./emoji.json', dataString, function (err) {
+    fs.writeFile('./extension/emoji.json', dataString, function (err) {
       if (err) {
         console.log(err);
       } else {

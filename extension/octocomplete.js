@@ -1,14 +1,14 @@
+/*global chrome: true*/
+
 (function () {
 'use strict';
 
   var root = this,
   doc = root.document,
-  store = root.localStorage,
-  CACHE_LIMIT_MS = 604800000, // 1 week
   KEYCODE_COLON = 186,
   KEYCODE_SPACE = 32,
   KEYCODE_ESCAPE = 27,
-  DATA_ENDPOINT = 'http://localhost:3000/?q=http://www.emoji-cheat-sheet.com',
+  DATA_ENDPOINT = chrome.extension.getURL('emoji.json'),
   // TODO: determine this base url on init
   IMG_PATH = 'https://a248.e.akamai.net/assets.github.com/images/icons/emoji/',
   instance,
@@ -22,6 +22,7 @@
   };
 
   OctoComplete.prototype = {
+
     init: function () {
       this.fetch(this.onFetch.bind(this));
       this.injectMenu();
@@ -40,60 +41,20 @@
       doc.body.appendChild(menuEl);
     },
 
-    isStale: function () {
-      var cachedList = store.emojiList,
-          now = (new Date()).getTime(),
-          updateDate = parseInt(store.updateDate, 10);
-
-      if (!cachedList || !updateDate || (now - updateDate) > CACHE_LIMIT_MS) {
-        return true;
-      }
-      return false;
-    },
-
-    getFromCache: function () {
-      return store.emojiList ? store.emojiList.split(',') : null;
-    },
-
-    saveToCache: function (data) {
-      store.emojiList = data;
-      store.updateDate = (new Date()).getTime();
-    },
 
     fetch: function (callback, errback) {
       var xhr;
 
-      if (!this.isStale()) {
-        callback(this.getFromCache());
-        return;
-      }
       xhr = new root.XMLHttpRequest();
       xhr.open('GET', DATA_ENDPOINT, true);
       xhr.onreadystatechange = function() {
         var results;
         // TODO: call errback() if error
         if (xhr.readyState === 4) {
-          results = this.scrape(xhr.response);
-          this.saveToCache(results);
-          callback(results);
+          callback(JSON.parse(xhr.response));
         }
       }.bind(this);
       xhr.send();
-    },
-
-    scrape: function (htmlString) {
-      var tmpEl = doc.createElement('div'),
-          emojiNodes,
-          emojiNames;
-
-      tmpEl.innerHTML = this.scrubHtmlString(htmlString);
-      emojiNodes = tmpEl.querySelectorAll('.emoji');
-      emojiNames = Array.prototype.map.call(emojiNodes, function (emojiNode) {
-        return emojiNode.getAttribute('data-src')
-          .replace('graphics/emojis/', '')
-          .replace('.png', '');
-      });
-      return emojiNames.sort();
     },
 
     render: function (targetEl) {
@@ -207,7 +168,7 @@
     },
 
     buildImgTag: function (emojiName) {
-      return '<img src="' + this.buildImgUrl(emojiName) + '"/>';
+      return '<img rel="prefetch" src="' + this.buildImgUrl(emojiName) + '"/>';
     },
 
     // TODO: strip out script tags, images, css, etc.

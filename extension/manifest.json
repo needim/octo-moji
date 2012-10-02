@@ -9,5 +9,7 @@
     "matches": ["https://github.com/*"],
     "css": ["style.css"],
     "js": ["octocomplete.js"]
-  }]
+  }],
+
+  "web_accessible_resources": ["emoji.json"]
 }
