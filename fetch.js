@@ -1,3 +1,9 @@
+/**
+ * @fileOverview
+ * Script to fetch and scrape all the emoji from emoji-cheat-sheet
+ * and put them into a nicely formatted JSON file.
+ */
+
 (function () {
   'use strict';
 

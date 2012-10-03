@@ -5,12 +5,14 @@
 
   var root = this,
   doc = root.document,
+  instance,
   KEYCODE_COLON = 186,
   KEYCODE_SPACE = 32,
   KEYCODE_ESCAPE = 27,
   DATA_ENDPOINT = chrome.extension.getURL('emoji.json'),
-  IMG_PATH_FALLBACK = 'https://a248.e.akamai.net/assets.github.com/images/icons/emoji/',
-  instance,
+  IMG_PATH_FALLBACK =
+      'https://a248.e.akamai.net/assets.github.com/images/icons/emoji/',
+
   OctoMoji = function () {
     this.menuVisible = false;
     this.menuEl = null;
@@ -22,14 +24,17 @@
 
   OctoMoji.prototype = {
 
+    // TODO: display error message if something went wrong
     init: function () {
       this.baseImgPath = this.scrapeBaseImgUrl();
       this.fetch(this.onFetch.bind(this));
       this.injectMenu();
       this.attachListeners();
+      return this;
     },
 
-    // TODO: hide menu on any type of click or textarea blur
+    // TODO: hide menu on textarea blur
+    // TODO: listen to keydown for arrow keys
     attachListeners: function () {
       doc.addEventListener('keyup', this.onKeyup.bind(this), false);
       doc.addEventListener('click', this.onClick.bind(this), false);
@@ -102,6 +107,9 @@
       });
     },
 
+    /**
+     * Parses the query out of the full text.
+     */
     parseQuery: function (allText) {
       var startIndex = allText.lastIndexOf(':') + 1,
           query;
@@ -111,6 +119,11 @@
     },
 
     // TODO: if not visible, scroll into view.
+    /**
+     * Display the auto-complete menu.
+     * @param {Element} targetEl The target element below which to show
+     *    the menu.
+     */
     show: function (targetEl) {
       var topPos, leftPos;
 
@@ -122,36 +135,55 @@
       this.isVisible = true;
     },
 
-    hide: function() {
+    /**
+     * Hides the auto-complete menu.
+     */
+    hide: function () {
       this.menuEl.style.display = 'none';
       this.isVisible = false;
       this.activeInput = null;
-      this.query = '';
     },
 
-    select: function (content) {
+    /**
+     * Make user selection from menu and inject text into current textarea.
+     * @param {string} selection The string value of the selected emoji.
+     */
+    select: function (selection) {
       var input = this.activeInput,
           value = input.value,
           colonIndex = value.lastIndexOf(':');
 
-      input.value = value.substring(0, colonIndex) + content;
+      input.value = value.substring(0, colonIndex) + selection;
       this.dispatchChangeEvent(input);
       input.focus();
       this.moveCursorToEnd(input);
     },
 
-    // Need this for github preview to work
+    /**
+     * Fires a CHANGE event from the given element.
+     * XXX: Need this for github preview to work
+     * @param {Element} el The element from which to fire the event.
+     */
     dispatchChangeEvent: function (el) {
       var evt = doc.createEvent('HTMLEvents');
       evt.initEvent('change', true, false);
       el.dispatchEvent(evt);
     },
 
+    /**
+     * Moves the user's cursor to the end of the input's text.
+     * @param {Element} el The input/textarea element.
+     */
     moveCursorToEnd: function (el) {
       el.selectionStart = el.selectionEnd = el.value.length;
     },
 
-    // walk up the tree applying func to each el.prop
+    /**
+     * Walk up the tree applying func to each element's parent for as long as
+     *    parents exist. Useful when calculating offsets.
+     * @param {Element} el The starting element.
+     * @param {function} func The function to apply.
+     */
     walkTree: function (el, func) {
       var parentEl = el;
       while (parentEl) {
@@ -188,6 +220,10 @@
       this.emojiList = results;
     },
 
+    /**
+     * Handles keyup events.
+     * {Event} e The event.
+     */
     onKeyup: function (e) {
       var target = e.target,
           code = e.keyCode;
@@ -208,6 +244,10 @@
       }
     },
 
+    /**
+     * Handles click events.
+     * {Event} e The event.
+     */
     onClick: function (e) {
       var target = e.target;
       if (!this.isVisible) {
@@ -224,7 +264,6 @@
 
   };
 
-  instance = new OctoMoji();
-  instance.init();
+  instance = new OctoMoji().init();
 
 }).call(this);
