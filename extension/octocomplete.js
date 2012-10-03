@@ -9,8 +9,7 @@
   KEYCODE_SPACE = 32,
   KEYCODE_ESCAPE = 27,
   DATA_ENDPOINT = chrome.extension.getURL('emoji.json'),
-  // TODO: determine this base url on init
-  IMG_PATH = 'https://a248.e.akamai.net/assets.github.com/images/icons/emoji/',
+  IMG_PATH_FALLBACK = 'https://a248.e.akamai.net/assets.github.com/images/icons/emoji/',
   instance,
   OctoComplete = function () {
     this.menuVisible = false;
@@ -24,6 +23,7 @@
   OctoComplete.prototype = {
 
     init: function () {
+      this.baseImgPath = this.scrapeBaseImgUrl();
       this.fetch(this.onFetch.bind(this));
       this.injectMenu();
       this.attachListeners();
@@ -41,6 +41,19 @@
       doc.body.appendChild(menuEl);
     },
 
+    scrapeBaseImgUrl: function () {
+      var logo = doc.querySelectorAll('.site-logo > img'),
+          src;
+
+      if (logo && logo.length) {
+        src = logo[0].getAttribute('src');
+        src = src.substring(0, src.lastIndexOf('images/'));
+      }
+      if (src && src !== '') {
+        return src + 'images/icons/emoji/';
+      }
+      return IMG_PATH_FALLBACK;
+    },
 
     fetch: function (callback, errback) {
       var xhr;
@@ -164,18 +177,11 @@
     },
 
     buildImgUrl: function (emojiName) {
-      return IMG_PATH + emojiName + '.png';
+      return this.baseImgPath + emojiName + '.png';
     },
 
     buildImgTag: function (emojiName) {
       return '<img rel="prefetch" src="' + this.buildImgUrl(emojiName) + '"/>';
-    },
-
-    // TODO: strip out script tags, images, css, etc.
-    // and any other uneeded junk prior to creating dom element
-    scrubHtmlString: function (htmlString) {
-      var newString = htmlString;
-      return newString;
     },
 
     onFetch: function (results) {
