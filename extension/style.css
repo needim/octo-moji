@@ -1,4 +1,4 @@
-.octo-complete-menu {
+.octo-moji-menu {
   display: none;
   position: absolute;
   top: 0px;
@@ -15,7 +15,7 @@
   overflow-y: scroll;
 }
 
-.octo-complete-menu li {
+.octo-moji-menu li {
   list-style: none;
   border-bottom: 1px #efefef solid;
   padding: 4px 6px;
@@ -23,12 +23,12 @@
   cursor: pointer;
 }
 
-.octo-complete-menu li:hover {
+.octo-moji-menu li:hover {
   background-color: #4F83C4;
   color: #fff;
 }
 
-.octo-complete-menu img {
+.octo-moji-menu img {
   width: 16px;
   height: 16px;
   vertical-align: middle;

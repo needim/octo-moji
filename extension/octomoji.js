@@ -11,7 +11,7 @@
   DATA_ENDPOINT = chrome.extension.getURL('emoji.json'),
   IMG_PATH_FALLBACK = 'https://a248.e.akamai.net/assets.github.com/images/icons/emoji/',
   instance,
-  OctoComplete = function () {
+  OctoMoji = function () {
     this.menuVisible = false;
     this.menuEl = null;
     this.isVisible = false;
@@ -20,7 +20,7 @@
     this.activeInput = null;
   };
 
-  OctoComplete.prototype = {
+  OctoMoji.prototype = {
 
     init: function () {
       this.baseImgPath = this.scrapeBaseImgUrl();
@@ -37,7 +37,7 @@
 
     injectMenu: function () {
       var menuEl = this.menuEl = doc.createElement('div');
-      menuEl.setAttribute('class', 'octo-complete-menu');
+      menuEl.setAttribute('class', 'octo-moji-menu');
       doc.body.appendChild(menuEl);
     },
 
@@ -186,7 +186,6 @@
 
     onFetch: function (results) {
       this.emojiList = results;
-      // TODO: show message 'fetch complete'
     },
 
     onKeyup: function (e) {
@@ -225,7 +224,7 @@
 
   };
 
-  instance = new OctoComplete();
+  instance = new OctoMoji();
   instance.init();
 
 }).call(this);
