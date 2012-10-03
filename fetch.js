@@ -13,7 +13,7 @@
       if (err) {
         console.log(err);
       } else {
-        console.log("The file was saved!");
+        console.log('The emojis were saved to extension/emoji.json!');
       }
     });
   }
@@ -35,7 +35,7 @@
   function fetchEmoji() {
     request.get(EMOJI_URL, function (err, response, body) {
       if (err) {
-        console.log('Error fetching emoji');
+        console.log('Error fetching emoji!');
       } else {
         scrapeHtml(body);
       }
