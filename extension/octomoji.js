@@ -10,8 +10,11 @@
 // TODO: handle xhr errors on fetch
 // TODO: hide menu on textarea blur
 // TODO: Cache images as data URIs?
+//   http://stackoverflow.com/questions/2390232/why-does-canvas-todataurl-throw-a-security-exception
 // TODO: Comments
 // TODO: Optimize
+
+
 
 (function () {
 'use strict';
