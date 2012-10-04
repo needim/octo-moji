@@ -5,6 +5,7 @@
 // TODO: display error message if something went wrong
 // TODO: handle xhr errors on fetch
 // TODO: hide menu on textarea blur
+// TODO: Cache images as data URIs?
 // TODO: Comments
 // TODO: Optimize
 
