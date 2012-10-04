@@ -1,5 +1,13 @@
 /*global chrome: true*/
 
+// TODO: Tab key support
+// TODO: if menu not visible after show(), scroll into view.
+// TODO: display error message if something went wrong
+// TODO: handle xhr errors on fetch
+// TODO: hide menu on textarea blur
+// TODO: Comments
+// TODO: Optimize
+
 (function () {
 'use strict';
 
@@ -30,7 +38,6 @@
 
   OctoMoji.prototype = {
 
-    // TODO: display error message if something went wrong
     init: function () {
       this.baseImgPath = this.scrapeBaseImgUrl();
       this.fetch(this.onFetch.bind(this));
@@ -39,7 +46,6 @@
       return this;
     },
 
-    // TODO: hide menu on textarea blur
     attachListeners: function () {
       doc.addEventListener('keydown', this.onKeydown.bind(this), false);
       doc.addEventListener('keyup', this.onKeyup.bind(this), false);
@@ -73,7 +79,6 @@
       xhr.open('GET', DATA_ENDPOINT, true);
       xhr.onreadystatechange = function() {
         var results;
-        // TODO: call errback() if error
         if (xhr.readyState === 4) {
           callback(JSON.parse(xhr.response));
         }
@@ -130,7 +135,6 @@
       return query;
     },
 
-    // TODO: if not visible, scroll into view.
     /**
      * Display the auto-complete menu.
      * @param {Element} targetEl The target element below which to show
@@ -277,6 +281,16 @@
     },
 
     /**
+     * Tests an element to see if it's a part of the menu.
+     * @param {Element}
+     * @return {boolean}
+     */
+    isMenuDescendant: function (el) {
+      return (el.parentElement &&
+          el.parentElement.parentElement === this.menuEl);
+    },
+
+    /**
      * Runs after fetch completes.
      */
     onFetch: function (results) {
@@ -382,13 +396,13 @@
      * {Event} e The event.
      */
     onClick: function (e) {
-      var target = e.target;
+      var target;
+
       if (!this.isVisible) {
         return;
       }
-      // TODO: or not a descendant
-      if (target.parentElement &&
-          target.parentElement.parentElement === this.menuEl) {
+      target = e.target;
+      if (this.isMenuDescendant(target)) {
         this.select(target.textContent);
       } else {
         this.hide();
