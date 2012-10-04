@@ -1,5 +1,9 @@
 /*global chrome: true*/
 
+// TODO: no need for instance
+// TODO: fix semicolon bug
+// TODO: use ?v=x at end of img urls
+// TODO: ":*" to bring up all
 // TODO: Tab key support
 // TODO: if menu not visible after show(), scroll into view.
 // TODO: display error message if something went wrong
