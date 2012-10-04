@@ -23,8 +23,10 @@
   cursor: pointer;
 }
 
-.octo-moji-menu li:hover {
+.octo-moji-menu li:hover,
+.octo-moji-menu li:focus {
   background-color: #4F83C4;
+  outline: none;
   color: #fff;
 }
 

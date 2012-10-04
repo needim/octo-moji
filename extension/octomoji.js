@@ -9,6 +9,10 @@
   KEYCODE_COLON = 186,
   KEYCODE_SPACE = 32,
   KEYCODE_ESCAPE = 27,
+  //KEYCODE_TAB = ,
+  //KEYCODE_ENTER = ,
+  KEYCODE_ARROW_UP = 38,
+  KEYCODE_ARROW_DOWN = 40,
   DATA_ENDPOINT = chrome.extension.getURL('emoji.json'),
   IMG_PATH_FALLBACK =
       'https://a248.e.akamai.net/assets.github.com/images/icons/emoji/',
@@ -37,6 +41,7 @@
     // TODO: listen to keydown for arrow keys
     attachListeners: function () {
       doc.addEventListener('keyup', this.onKeyup.bind(this), false);
+      doc.addEventListener('keydown', this.onKeydown.bind(this), false);
       doc.addEventListener('click', this.onClick.bind(this), false);
     },
 
@@ -86,9 +91,10 @@
     },
 
     renderList: function () {
-      var listHtml = '<ul>';
+      var listHtml = '<ul>', cnt = 0;
       this.filteredEmojiList.forEach(function (e) {
-        listHtml += '<li>' + this.buildImgTag(e) + ':' + e + ':</li>';
+        listHtml += '<li tabindex="' + cnt + '">' +
+          this.buildImgTag(e) + ':' + e + ':</li>';
       }, this);
       if (!this.filteredEmojiList.length) {
         listHtml += '<li>no results</li>';
@@ -216,8 +222,76 @@
       return '<img rel="prefetch" src="' + this.buildImgUrl(emojiName) + '"/>';
     },
 
+    /**
+     * Gets the currently focused menu item's element.
+     * @return {Element|null}
+     */
+    getFocusedMenuEl: function () {
+      return this.menuEl.querySelector('li:focus');
+    },
+
+    /**
+     * Focus on the 1st item in the menu.
+     */
+    focusFirst: function () {
+      var first = this.menuEl.querySelector('li');
+      if (first) {
+        first.focus();
+      }
+    },
+
+    /**
+     * Focus on the next item in the menu.
+     */
+    focusNext: function () {
+      var current = this.getFocusedMenuEl();
+
+      if (!current) {
+        this.focusFirst();
+      } else if (current.nextSibling) {
+        current.nextSibling.focus();
+      }
+    },
+
+    /**
+     * Focus on the previous item in the menu.
+     */
+    focusPrevious: function () {
+      var current = this.getFocusedMenuEl();
+
+      if (!current) {
+        this.focusFirst();
+      } else if (current.previousSibling) {
+        current.previousSibling.focus();
+      }
+    },
+
+    /**
+     * Runs after fetch completes.
+     */
     onFetch: function (results) {
       this.emojiList = results;
+    },
+
+    /**
+     * Handles up/down arrow key events.
+     * {Event} e The event.
+     */
+    onKeydown: function (e) {
+      var code = e.keyCode;
+
+      if (!this.isVisible) {
+        return;
+      }
+      if (code === KEYCODE_ARROW_UP) {
+        this.focusPrevious();
+        e.preventDefault();
+        e.stopPropagation();
+      } else if (code === KEYCODE_ARROW_DOWN) {
+        this.focusNext();
+        e.preventDefault();
+        e.stopPropagation();
+      }
     },
 
     /**
