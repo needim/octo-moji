@@ -6,13 +6,15 @@
   var root = this,
   doc = root.document,
   instance,
-  KEYCODE_COLON = 186,
-  KEYCODE_SPACE = 32,
-  KEYCODE_ESCAPE = 27,
-  //KEYCODE_TAB = ,
-  //KEYCODE_ENTER = ,
-  KEYCODE_ARROW_UP = 38,
-  KEYCODE_ARROW_DOWN = 40,
+  KEYCODES = {
+    COLON: 186,
+    SPACE: 32,
+    ESCAPE: 27,
+    ENTER: 13,
+    ARROW_UP: 38,
+    ARROW_DOWN: 40,
+    TAB: 9
+  },
   DATA_ENDPOINT = chrome.extension.getURL('emoji.json'),
   IMG_PATH_FALLBACK =
       'https://a248.e.akamai.net/assets.github.com/images/icons/emoji/',
@@ -38,10 +40,9 @@
     },
 
     // TODO: hide menu on textarea blur
-    // TODO: listen to keydown for arrow keys
     attachListeners: function () {
-      doc.addEventListener('keyup', this.onKeyup.bind(this), false);
       doc.addEventListener('keydown', this.onKeydown.bind(this), false);
+      doc.addEventListener('keyup', this.onKeyup.bind(this), false);
       doc.addEventListener('click', this.onClick.bind(this), false);
     },
 
@@ -81,7 +82,12 @@
     },
 
     render: function (targetEl) {
-      var value = targetEl.value;
+      var value;
+
+      if (targetEl.nodeName !== 'TEXTAREA') {
+        return;
+      }
+      value = targetEl.value;
       this.activeInput = targetEl;
       this.filteredEmojiList = this.filter(value);
       this.renderList();
@@ -145,8 +151,13 @@
      * Hides the auto-complete menu.
      */
     hide: function () {
+      var input = this.activeInput;
       this.menuEl.style.display = 'none';
       this.isVisible = false;
+      if (input) {
+        input.focus();
+        this.moveCursorToEnd(input);
+      }
       this.activeInput = null;
     },
 
@@ -161,8 +172,7 @@
 
       input.value = value.substring(0, colonIndex) + selection;
       this.dispatchChangeEvent(input);
-      input.focus();
-      this.moveCursorToEnd(input);
+      this.hide();
     },
 
     /**
@@ -273,8 +283,51 @@
       this.emojiList = results;
     },
 
+    onEnterKey: function (e) {
+      var current = this.getFocusedMenuEl();
+
+      if (current) {
+        this.select(current.textContent);
+        this.hide();
+        e.preventDefault();
+        e.stopPropagation();
+      } else {
+        this.hide();
+      }
+    },
+
+    onArrowUpKey: function (e) {
+      this.focusPrevious();
+      e.preventDefault();
+      e.stopPropagation();
+    },
+
+    onArrowDownKey: function (e) {
+      this.focusNext();
+      e.preventDefault();
+      e.stopPropagation();
+    },
+
+    onEscapeKey: function (e) {
+      if (this.isVisible) {
+        this.hide();
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    },
+
+    onSpaceKey: function (e) {
+      if (this.isVisible && e.target.nodeName === 'TEXTAREA') {
+        this.hide();
+      }
+    },
+
+    onColonKey: function (e) {
+      this.render(e.target);
+    },
+
     /**
-     * Handles up/down arrow key events.
+     * Delegates to specific keydown handlers.
      * {Event} e The event.
      */
     onKeydown: function (e) {
@@ -283,14 +336,22 @@
       if (!this.isVisible) {
         return;
       }
-      if (code === KEYCODE_ARROW_UP) {
-        this.focusPrevious();
-        e.preventDefault();
-        e.stopPropagation();
-      } else if (code === KEYCODE_ARROW_DOWN) {
-        this.focusNext();
-        e.preventDefault();
-        e.stopPropagation();
+      switch (code) {
+        case KEYCODES.ENTER:
+          this.onEnterKey(e);
+          break;
+        case KEYCODES.ARROW_UP:
+          this.onArrowUpKey(e);
+          break;
+        case KEYCODES.ARROW_DOWN:
+          this.onArrowDownKey(e);
+          break;
+        case KEYCODES.ESCAPE:
+          this.onEscapeKey(e);
+          break;
+        case KEYCODES.SPACE:
+          this.onSpaceKey(e);
+          break;
       }
     },
 
@@ -299,22 +360,20 @@
      * {Event} e The event.
      */
     onKeyup: function (e) {
-      var target = e.target,
-          code = e.keyCode;
-
-      if (this.isVisible && code === KEYCODE_ESCAPE) {
-        this.hide();
-        return;
-      }
-      if (target.nodeName !== 'TEXTAREA') {
-        return;
-      }
-      if (this.isVisible && code === KEYCODE_SPACE) {
-        this.hide();
-        return;
-      }
-      if (this.isVisible || (code === KEYCODE_COLON && e.shiftKey)) {
-        this.render(target);
+      switch (e.keyCode) {
+        case KEYCODES.COLON:
+            this.onColonKey(e);
+          break;
+        // XXX: Need this for code comments.
+        // Seems like github is cancelling esc key bubble.
+        case KEYCODES.ESCAPE:
+          this.onEscapeKey(e);
+          break;
+        default:
+          // Only render(read "filter") menu when it's visible
+          if (this.isVisible) {
+            this.render(e.target);
+          }
       }
     },
 
@@ -330,10 +389,10 @@
       // TODO: or not a descendant
       if (target.parentElement &&
           target.parentElement.parentElement === this.menuEl) {
-        // TODO: pass inner content
         this.select(target.textContent);
+      } else {
+        this.hide();
       }
-      this.hide();
     }
 
   };
