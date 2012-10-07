@@ -1,7 +1,6 @@
 /*global chrome: true*/
 
 // TODO: no need for instance
-// TODO: fix semicolon bug
 // TODO: use ?v=x at end of img urls
 // TODO: ":*" to bring up all
 // TODO: Tab key support
@@ -384,7 +383,9 @@
     onKeyup: function (e) {
       switch (e.keyCode) {
         case KEYCODES.COLON:
-            this.onColonKey(e);
+            if (e.shiftKey) {
+              this.onColonKey(e);
+            }
           break;
         // XXX: Need this for code comments.
         // Seems like github is cancelling esc key bubble.
