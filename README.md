@@ -1,7 +1,7 @@
 Octo-Moji
 =============
 
-![](extension/icons/icon-128.png)
+![](https://raw.github.com/sym3tri/octo-moji/master/extension/icons/icon-128.png)
 
 Github emoji auto-complete Chrome extension
 
