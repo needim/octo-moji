@@ -1,13 +1,12 @@
 /*global chrome: true*/
 
 // TODO: no need for instance
-// TODO: use ?v=x at end of img urls
 // TODO: ":*" to bring up all
-// TODO: Tab key support
 // TODO: if menu not visible after show(), scroll into view.
 // TODO: display error message if something went wrong
 // TODO: handle xhr errors on fetch
 // TODO: hide menu on textarea blur
+// TODO: use ?v=x at end of img urls?
 // TODO: Cache images as data URIs?
 //   http://stackoverflow.com/questions/2390232/why-does-canvas-todataurl-throw-a-security-exception
 // TODO: Comments
@@ -304,17 +303,36 @@
       this.emojiList = results;
     },
 
+    /**
+     * Handles enter key presses. Assumes menu is visible.
+     * @param {Event} e
+     */
     onEnterKey: function (e) {
       var current = this.getFocusedMenuEl();
 
       if (current) {
         this.select(current.textContent);
-        this.hide();
         e.preventDefault();
         e.stopPropagation();
       } else {
         this.hide();
       }
+    },
+
+    /**
+     * Handles tab key presses. Assumes menu is visible.
+     * @param {Event} e
+     */
+    onTabKey: function (e) {
+      var current = this.getFocusedMenuEl();
+
+      if (current) {
+        this.select(current.textContent);
+      } else {
+        this.hide();
+      }
+      e.preventDefault();
+      e.stopPropagation();
     },
 
     onArrowUpKey: function (e) {
@@ -360,6 +378,9 @@
       switch (code) {
         case KEYCODES.ENTER:
           this.onEnterKey(e);
+          break;
+        case KEYCODES.TAB:
+          this.onTabKey(e);
           break;
         case KEYCODES.ARROW_UP:
           this.onArrowUpKey(e);
