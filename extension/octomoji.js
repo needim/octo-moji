@@ -1,10 +1,8 @@
 /*global chrome: true*/
 
 // TODO: ":*" to bring up all
-// TODO: if menu not visible after show(), scroll into view.
 // TODO: display error message if something went wrong
 // TODO: handle xhr errors on fetch
-// TODO: hide menu on textarea blur
 // TODO: use ?v=x at end of img urls?
 // TODO: Cache images as data URIs?
 //   http://stackoverflow.com/questions/2390232/why-does-canvas-todataurl-throw-a-security-exception
@@ -56,7 +54,7 @@
     },
 
     injectMenu: function () {
-      var menuEl = this.menuEl = doc.createElement('div');
+      var menuEl = this.menuEl = doc.createElement('ul');
       menuEl.setAttribute('class', 'octo-moji-menu');
       doc.body.appendChild(menuEl);
     },
@@ -101,19 +99,18 @@
       this.renderList();
       if (!this.menuVisible) {
         this.show(targetEl);
+        this.menuEl.scrollIntoViewIfNeeded();
       }
     },
 
     renderList: function () {
-      var listHtml = '<ul>', cnt = 0;
+      var listHtml = '';
       this.filteredEmojiList.forEach(function (e) {
-        listHtml += '<li tabindex="' + cnt + '">' +
-          this.buildImgTag(e) + ':' + e + ':</li>';
+        listHtml += '<li>' + this.buildImgTag(e) + ':' + e + ':</li>';
       }, this);
       if (!this.filteredEmojiList.length) {
         listHtml += '<li>no results</li>';
       }
-      listHtml += '</ul>';
       this.menuEl.innerHTML = listHtml;
     },
 
@@ -154,6 +151,7 @@
       menuEl.style.left = leftPos + 'px';
       menuEl.style.display = 'block';
       this.isVisible = true;
+      this.focusFirst();
     },
 
     /**
@@ -163,10 +161,6 @@
       var input = this.activeInput;
       this.menuEl.style.display = 'none';
       this.isVisible = false;
-      if (input) {
-        input.focus();
-        this.moveCursorToEnd(input);
-      }
       this.activeInput = null;
     },
 
@@ -182,6 +176,8 @@
       input.value = value.substring(0, colonIndex) + selection;
       this.dispatchChangeEvent(input);
       this.hide();
+      input.focus();
+      this.moveCursorToEnd(input);
     },
 
     /**
@@ -246,17 +242,26 @@
      * @return {Element|null}
      */
     getFocusedMenuEl: function () {
-      return this.menuEl.querySelector('li:focus');
+      return this.menuEl.querySelector('.is-active');
+    },
+
+    focusMenuEl: function (el) {
+      var current = this.getFocusedMenuEl();
+      if (current) {
+        current.setAttribute('class', '');
+      }
+      if (el) {
+        el.setAttribute('class', 'is-active');
+        el.scrollIntoViewIfNeeded();
+      }
     },
 
     /**
      * Focus on the 1st item in the menu.
      */
     focusFirst: function () {
-      var first = this.menuEl.querySelector('li');
-      if (first) {
-        first.focus();
-      }
+      this.focusMenuEl(this.menuEl.querySelector('li'));
+      this.menuEl.scrollTop = 0;
     },
 
     /**
@@ -268,7 +273,7 @@
       if (!current) {
         this.focusFirst();
       } else if (current.nextSibling) {
-        current.nextSibling.focus();
+        this.focusMenuEl(current.nextSibling);
       }
     },
 
@@ -281,7 +286,8 @@
       if (!current) {
         this.focusFirst();
       } else if (current.previousSibling) {
-        current.previousSibling.focus();
+        //current.previousSibling.focus();
+        this.focusMenuEl(current.previousSibling);
       }
     },
 
@@ -292,7 +298,7 @@
      */
     isMenuDescendant: function (el) {
       return (el.parentElement &&
-          el.parentElement.parentElement === this.menuEl);
+          el.parentElement === this.menuEl);
     },
 
     /**
@@ -401,6 +407,8 @@
      * {Event} e The event.
      */
     onKeyup: function (e) {
+      var ignoreKeys;
+
       switch (e.keyCode) {
         case KEYCODES.COLON:
             if (e.shiftKey) {
@@ -414,7 +422,11 @@
           break;
         default:
           // Only render(read "filter") menu when it's visible
-          if (this.isVisible) {
+          if (!this.isVisible) {
+            return;
+          }
+          ignoreKeys = [KEYCODES.ARROW_UP, KEYCODES.ARROW_DOWN];
+          if (ignoreKeys.indexOf(e.keyCode) === -1) {
             this.render(e.target);
           }
       }
