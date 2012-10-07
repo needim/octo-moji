@@ -144,13 +144,15 @@
      *    the menu.
      */
     show: function (targetEl) {
-      var topPos, leftPos;
+      var menuEl = this.menuEl,
+          topPos,
+          leftPos;
 
       topPos = this.calcOffsetTop(targetEl) + targetEl.offsetHeight;
       leftPos = this.calcOffsetLeft(targetEl);
-      this.menuEl.style.top = topPos + 'px';
-      this.menuEl.style.left = leftPos + 'px';
-      this.menuEl.style.display = 'block';
+      menuEl.style.top = topPos + 'px';
+      menuEl.style.left = leftPos + 'px';
+      menuEl.style.display = 'block';
       this.isVisible = true;
     },
 
