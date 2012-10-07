@@ -1,6 +1,5 @@
 /*global chrome: true*/
 
-// TODO: no need for instance
 // TODO: ":*" to bring up all
 // TODO: if menu not visible after show(), scroll into view.
 // TODO: display error message if something went wrong
@@ -13,13 +12,11 @@
 // TODO: Optimize
 
 
-
 (function () {
 'use strict';
 
   var root = this,
   doc = root.document,
-  instance,
   KEYCODES = {
     COLON: 186,
     SPACE: 32,
@@ -33,18 +30,18 @@
   IMG_PATH_FALLBACK =
       'https://a248.e.akamai.net/assets.github.com/images/icons/emoji/',
 
-  OctoMoji = function () {
-    this.menuVisible = false;
-    this.menuEl = null;
-    this.isVisible = false;
-    this.emojiList = null;
-    this.filteredEmojiList = null;
-    this.activeInput = null;
-  };
+  OctoMoji = {
 
-  OctoMoji.prototype = {
-
+    /**
+     * All extension initialization.
+     */
     init: function () {
+      this.menuVisible = false;
+      this.menuEl = null;
+      this.isVisible = false;
+      this.emojiList = null;
+      this.filteredEmojiList = null;
+      this.activeInput = null;
       this.baseImgPath = this.scrapeBaseImgUrl();
       this.fetch(this.onFetch.bind(this));
       this.injectMenu();
@@ -439,8 +436,6 @@
       }
     }
 
-  };
-
-  instance = new OctoMoji().init();
+  }.init();
 
 }).call(this);
