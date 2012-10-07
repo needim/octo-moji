@@ -1,5 +1,6 @@
 /*global chrome: true*/
 
+// TODO: bug: menu still showing after deletion of colon
 // TODO: ":*" to bring up all
 // TODO: display error message if something went wrong
 // TODO: handle xhr errors on fetch
