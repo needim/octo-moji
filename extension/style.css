@@ -24,7 +24,6 @@
 }
 
 .octo-moji-menu li:hover,
-.octo-moji-menu li:focus,
 .octo-moji-menu .is-active {
   background-color: #4F83C4;
   outline: none;
@@ -36,4 +35,18 @@
   height: 16px;
   vertical-align: middle;
   margin-right: 10px;
+}
+
+.octo-moji-error {
+  position: fixed;
+  bottom: 0px;
+  left: 0px;
+  min-width: 200px;
+  width: 30%;
+  background-color: #BD2C00;
+  color: #efefef;
+  z-index: 100;
+  padding: 6px;
+  border-radius: 6px 6px 0 0;
+  box-shadow: 0 0 13px rgba(0, 0, 0, 0.31);
 }

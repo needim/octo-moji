@@ -2,14 +2,8 @@
 
 // TODO: bug: menu still showing after deletion of colon
 // TODO: ":*" to bring up all
-// TODO: display error message if something went wrong
-// TODO: handle xhr errors on fetch
-// TODO: use ?v=x at end of img urls?
-// TODO: Cache images as data URIs?
-//   http://stackoverflow.com/questions/2390232/why-does-canvas-todataurl-throw-a-security-exception
 // TODO: Comments
 // TODO: Optimize
-
 
 (function () {
 'use strict';
@@ -74,7 +68,7 @@
       return IMG_PATH_FALLBACK;
     },
 
-    fetch: function (callback, errback) {
+    fetch: function (callback) {
       var xhr;
 
       xhr = new root.XMLHttpRequest();
@@ -82,10 +76,39 @@
       xhr.onreadystatechange = function() {
         var results;
         if (xhr.readyState === 4) {
-          callback(JSON.parse(xhr.response));
+          if (xhr.status === 200) {
+            callback(JSON.parse(xhr.response));
+          } else {
+            this.showError('Oops. There was a problem loading Octo-Moji. ' +
+              'Try refreshing or file a bug.');
+          }
         }
       }.bind(this);
       xhr.send();
+    },
+
+    /**
+     * Injects a div at the top of the screen with an error message.
+     * @param {string} msg
+     */
+    showError: function (msg) {
+      if (!this.errorEl) {
+        this.errorEl = doc.createElement('div');
+        this.errorEl.setAttribute('class', 'octo-moji-error');
+        doc.body.appendChild(this.errorEl);
+      }
+      this.errorEl.innerText = msg;
+      this.errorEl.style.display = 'block';
+      setTimeout(this.hideError.bind(this), 5000);
+    },
+
+    /**
+     * Hides the error message if it exists.
+     */
+    hideError: function () {
+      if (this.errorEl) {
+        this.errorEl.style.display = 'none';
+      }
     },
 
     render: function (targetEl) {
