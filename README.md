@@ -21,7 +21,7 @@ Type more characters to filter.
 
 `SPACEBAR` to dismiss the menu.   
 
-`TAB`, `ENTER`, or click to select.   
+`TAB`, `ENTER`, or `CLICK` to select.   
 
 
 ## Features
