@@ -235,12 +235,15 @@ footer {
     position:static;
   }
 
-  p.view a {
-    display: block;
+  p.view {
     border: 1px solid #39C;
     padding: 4px;
     border-radius: 4px;
     background-color: #39C;
+  }
+
+  p.view a {
+    display: block;
     color: #eee;
   }
 
