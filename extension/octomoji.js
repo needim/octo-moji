@@ -1,15 +1,10 @@
 /*global chrome: true*/
 
-// TODO: bug: menu still showing after deletion of colon
-// TODO: ":*" to bring up all
-// TODO: Comments
-// TODO: Optimize
-
 (function () {
 'use strict';
 
-  var root = this,
-  doc = root.document,
+  var root = window,
+  doc = window.document,
   KEYCODES = {
     COLON: 186,
     SPACE: 32,
@@ -29,9 +24,8 @@
      * All extension initialization.
      */
     init: function () {
-      this.menuVisible = false;
+      this.queryRegex = /\:([a-z0-9_\-+]+)$/i;
       this.menuEl = null;
-      this.isVisible = false;
       this.emojiList = null;
       this.filteredEmojiList = null;
       this.activeInput = null;
@@ -42,18 +36,35 @@
       return this;
     },
 
+    /**
+     * Attach all needed DOM event listeners.
+     */
     attachListeners: function () {
       doc.addEventListener('keydown', this.onKeydown.bind(this), false);
       doc.addEventListener('keyup', this.onKeyup.bind(this), false);
       doc.addEventListener('click', this.onClick.bind(this), false);
     },
 
+    /**
+     * Determines if the menu is visible or not.
+     * @return {boolean}
+     */
+    isVisible: function () {
+      return this.menuEl && this.menuEl.style.display === 'block';
+    },
+
+    /**
+     * Injects the menu element into the DOM.
+     */
     injectMenu: function () {
       var menuEl = this.menuEl = doc.createElement('ul');
       menuEl.setAttribute('class', 'octo-moji-menu');
       doc.body.appendChild(menuEl);
     },
 
+    /**
+     * Determines what base img url to use for images.
+     */
     scrapeBaseImgUrl: function () {
       var logo = doc.querySelectorAll('.site-logo > img'),
           src;
@@ -68,6 +79,10 @@
       return IMG_PATH_FALLBACK;
     },
 
+    /**
+     * Loads the emoji definitions from external file.
+     * @param {function} callback
+     */
     fetch: function (callback) {
       var xhr;
 
@@ -111,22 +126,35 @@
       }
     },
 
+    /**
+     * Gets input, filters list, re-renders and shows menu.
+     * @param {Element} targetEl The element to show menu below.
+     */
     render: function (targetEl) {
-      var value;
+      var value, query;
 
       if (targetEl.nodeName !== 'TEXTAREA') {
         return;
       }
-      value = targetEl.value;
       this.activeInput = targetEl;
-      this.filteredEmojiList = this.filter(value);
+      value = targetEl.value;
+      query = this.parseQuery(value);
+      // Skip rendering if there's no query (ie no colon).
+      if (query === null) {
+        this.hide();
+        return;
+      }
+      this.filteredEmojiList = this.filter(query);
       this.renderList();
-      if (!this.menuVisible) {
+      if (!this.isVisible()) {
         this.show(targetEl);
         this.menuEl.scrollIntoViewIfNeeded();
       }
     },
 
+    /**
+     * Updates the list of emoji in the menu.
+     */
     renderList: function () {
       var listHtml = '';
       this.filteredEmojiList.forEach(function (e) {
@@ -138,9 +166,12 @@
       this.menuEl.innerHTML = listHtml;
     },
 
-    filter: function (allText) {
-      var query = this.parseQuery(allText);
-
+    /**
+     * Filters the total list of emoji to items that match the query.
+     * @param {string} query
+     * @return {string[]}
+     */
+    filter: function (query) {
       return this.emojiList.filter(function (item) {
         if (item.indexOf(query) === 0) {
           return item;
@@ -148,15 +179,46 @@
       });
     },
 
+    getCurrentLine: function (allText) {
+      var cursorPos = this.activeInput.selectionStart - 1,
+          lines = allText.split('\n'),
+          cnt = 0,
+          i = 0,
+          currentLine;
+
+      lines = allText.split('\n');
+      while (cursorPos > cnt) {
+        cnt += lines[i].length;
+        // for line breaks
+        cnt += 1;
+        i += 1;
+      }
+      if (cnt === cursorPos) {
+        currentLine = lines[i];
+      } else {
+        currentLine = lines[i - 1];
+      }
+      return currentLine;
+    },
+
     /**
      * Parses the query out of the full text.
+     * @param {string} allText
      */
     parseQuery: function (allText) {
-      var startIndex = allText.lastIndexOf(':') + 1,
-          query;
+      var cursorPos = this.activeInput.selectionStart - 1,
+          currentLine = this.getCurrentLine(allText),
+          matches;
 
-      query = allText.substring(startIndex);
-      return query;
+      // Last character is a colon, so query is emtpy.
+      if (currentLine[currentLine.length - 1] === ':') {
+        return '';
+      }
+      matches = this.queryRegex.exec(currentLine);
+      if (matches && matches.length) {
+        return matches.pop();
+      }
+      return null;
     },
 
     /**
@@ -174,7 +236,6 @@
       menuEl.style.top = topPos + 'px';
       menuEl.style.left = leftPos + 'px';
       menuEl.style.display = 'block';
-      this.isVisible = true;
       this.focusFirst();
     },
 
@@ -184,7 +245,6 @@
     hide: function () {
       var input = this.activeInput;
       this.menuEl.style.display = 'none';
-      this.isVisible = false;
       this.activeInput = null;
     },
 
@@ -198,6 +258,11 @@
           colonIndex = value.lastIndexOf(':');
 
       input.value = value.substring(0, colonIndex) + selection;
+
+      // TODO: replace the query with the selection on the current line
+      // do this while keeping other lines in place
+      // then move cursor to end of current line
+
       this.dispatchChangeEvent(input);
       this.hide();
       input.focus();
@@ -237,6 +302,12 @@
       }
     },
 
+    /**
+     * Calculate the total left offset in pixels of an element from the
+     *    document.
+     * @param {Element} el
+     * @return {number}
+     */
     calcOffsetLeft: function (el) {
       var offset = 0;
       this.walkTree(el, function (parentEl) {
@@ -245,6 +316,11 @@
       return offset;
     },
 
+    /**
+     * Calculate the total top offset in pixels of an element from the document.
+     * @param {Element} el
+     * @return {number}
+     */
     calcOffsetTop: function (el) {
       var offset = 0;
       this.walkTree(el, function (parentEl) {
@@ -253,10 +329,20 @@
       return offset;
     },
 
+    /**
+     * Generates the img url given an emoji name.
+     * @param {string} emojiName
+     * @return {string}
+     */
     buildImgUrl: function (emojiName) {
       return this.baseImgPath + emojiName + '.png';
     },
 
+    /**
+     * Generates an html img tag for a given emoji anme.
+     * @param {string} emojiName
+     * @return {string}
+     */
     buildImgTag: function (emojiName) {
       return '<img rel="prefetch" src="' + this.buildImgUrl(emojiName) + '"/>';
     },
@@ -269,8 +355,13 @@
       return this.menuEl.querySelector('.is-active');
     },
 
+    /**
+     * Unfocus all menu items, focus on the given element.
+     * @param {Element} el
+     */
     focusMenuEl: function (el) {
       var current = this.getFocusedMenuEl();
+
       if (current) {
         current.setAttribute('class', '');
       }
@@ -334,7 +425,7 @@
 
     /**
      * Handles enter key presses. Assumes menu is visible.
-     * @param {Event} e
+     * @param {KeyboardEvent} e
      */
     onEnterKey: function (e) {
       var current = this.getFocusedMenuEl();
@@ -350,7 +441,7 @@
 
     /**
      * Handles tab key presses. Assumes menu is visible.
-     * @param {Event} e
+     * @param {KeyboardEvent} e
      */
     onTabKey: function (e) {
       var current = this.getFocusedMenuEl();
@@ -364,32 +455,52 @@
       e.stopPropagation();
     },
 
+    /**
+     * Handles up arrow key presses. Assumes menu is visible.
+     * @param {KeyboardEvent} e
+     */
     onArrowUpKey: function (e) {
       this.focusPrevious();
       e.preventDefault();
       e.stopPropagation();
     },
 
+    /**
+     * Handles down arrow key presses. Assumes menu is visible.
+     * @param {KeyboardEvent} e
+     */
     onArrowDownKey: function (e) {
       this.focusNext();
       e.preventDefault();
       e.stopPropagation();
     },
 
+    /**
+     * Handles esc key presses. Assumes menu is visible.
+     * @param {KeyboardEvent} e
+     */
     onEscapeKey: function (e) {
-      if (this.isVisible) {
+      if (this.isVisible()) {
         this.hide();
         e.preventDefault();
         e.stopPropagation();
       }
     },
 
+    /**
+     * Handles spacebar key presses. Assumes menu is visible.
+     * @param {KeyboardEvent} e
+     */
     onSpaceKey: function (e) {
-      if (this.isVisible && e.target.nodeName === 'TEXTAREA') {
+      if (this.isVisible() && e.target.nodeName === 'TEXTAREA') {
         this.hide();
       }
     },
 
+    /**
+     * Handles colon key presses. Assumes menu is visible.
+     * @param {KeyboardEvent} e
+     */
     onColonKey: function (e) {
       this.render(e.target);
     },
@@ -401,7 +512,7 @@
     onKeydown: function (e) {
       var code = e.keyCode;
 
-      if (!this.isVisible) {
+      if (!this.isVisible()) {
         return;
       }
       switch (code) {
@@ -446,7 +557,7 @@
           break;
         default:
           // Only render(read "filter") menu when it's visible
-          if (!this.isVisible) {
+          if (!this.isVisible()) {
             return;
           }
           ignoreKeys = [KEYCODES.ARROW_UP, KEYCODES.ARROW_DOWN];
@@ -463,7 +574,7 @@
     onClick: function (e) {
       var target;
 
-      if (!this.isVisible) {
+      if (!this.isVisible()) {
         return;
       }
       target = e.target;
@@ -476,4 +587,4 @@
 
   }.init();
 
-}).call(this);
+}());
