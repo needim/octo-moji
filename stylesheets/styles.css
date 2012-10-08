@@ -222,6 +222,22 @@ footer {
   box-shadow: 6px 7px 20px #999;
 }
 
+.view {
+  border: 1px solid #39C;
+  padding: 4px;
+  border-radius: 4px;
+  background-color: #39C;
+}
+
+.view a {
+  display: block;
+  color: #eee;
+}
+
+.view small {
+  color: #ddd
+}
+
 @media print, screen and (max-width: 720px) {
   body {
     word-wrap:break-word;
@@ -233,22 +249,6 @@ footer {
   
   header ul, header p.view {
     position:static;
-  }
-
-  p.view {
-    border: 1px solid #39C;
-    padding: 4px;
-    border-radius: 4px;
-    background-color: #39C;
-  }
-
-  p.view a {
-    display: block;
-    color: #eee;
-  }
-
-  p.view small {
-    color: #ccc
   }
 
   pre, code {
