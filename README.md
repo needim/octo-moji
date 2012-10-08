@@ -32,7 +32,11 @@ Type more characters to filter.
 - Updated as new emoji are supported
 - Extremely small footprint (only XXX KB of JavaScript minified)
 
-### Issues / Questions
+
+* * *
+
+
+### Problems? / Questions?
 
 [Submit an issue](https://github.com/sym3tri/octo-moji/issues)
 
