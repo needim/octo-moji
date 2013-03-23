@@ -1,14 +1,13 @@
 Octo-Moji
 =============
 
+#This project is defunct now that github has this feature natively
+
 ![](http://edrooth.com/octo-moji/img/icon-128.png)
 
 The Github emoji auto-complete Chrome extension
 
 
-## Installation
-
-[Install from Chrome Web Store]()
 
 
 ## Usage
@@ -32,16 +31,3 @@ Type more characters to filter.
 - Updated as new emoji are supported
 - Extremely small footprint (only XXX KB of JavaScript minified)
 
-
-* * *
-
-
-### Problems? / Questions?
-
-[Submit an issue](https://github.com/sym3tri/octo-moji/issues)
-
-
-### About
-
-Neither I nor this project have any affiliation with Github.   
-This project would not be possible without the folks behind [Emoji Cheat Sheet](http://www.emoji-cheat-sheet.com).
